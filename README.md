@@ -3,7 +3,7 @@
 
 This is a fork of [ShortGPT](https://github.com/ShortGPT/ShortGPT)](https://github.com/RayVentura/ShortGPT). enhanced with support for:
 
-- [ ] **Ollama** – Run local LLMs on your machine using the Ollama runtime.
+- [x] **Ollama** – Run local LLMs on your machine using the Ollama runtime.
 - [ ] **Groq** – Use the ultra-fast Groq Cloud API to run open-source LLMs like Mixtral or LLaMA.
 - [x] **OpenAI** – (existing support)
 - [x] **Gemini** – Google’s powerful LLM (if API key is present)
@@ -47,6 +47,7 @@ The system selects which LLM backend to use in this order:
 - Python 3.9+
 - `ffmpeg` installed
 - One of the following: API keys for Gemini, OpenAI, Groq or [Ollama](https://ollama.com/) installed
+- Mistral model pulled in to ollama
 
 ---
 
