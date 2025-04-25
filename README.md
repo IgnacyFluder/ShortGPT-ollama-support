@@ -1,7 +1,7 @@
 
 # ShortGPT - Ollama & Groq Support Fork
 
-This is a fork of [ShortGPT](https://github.com/ShortGPT/ShortGPT) enhanced with support for:
+This is a fork of [ShortGPT](https://github.com/ShortGPT/ShortGPT)](https://github.com/RayVentura/ShortGPT). enhanced with support for:
 
 - [ ] **Ollama** – Run local LLMs on your machine using the Ollama runtime.
 - [ ] **Groq** – Use the ultra-fast Groq Cloud API to run open-source LLMs like Mixtral or LLaMA.
