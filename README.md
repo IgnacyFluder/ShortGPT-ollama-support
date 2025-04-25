@@ -47,6 +47,7 @@ The system selects which LLM backend to use in this order:
 - Python 3.9+
 - `ffmpeg` installed
 - One of the following: API keys for Gemini, OpenAI, Groq or [Ollama](https://ollama.com/) installed
+- Mistral model pulled in to ollama
 
 ---
 
