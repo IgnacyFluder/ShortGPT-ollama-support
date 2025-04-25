@@ -18,3 +18,5 @@ moviepy==2.1.2
 progress
 questionary
 edge-tts
+### for local LLMs
+ollama==0.4.6
