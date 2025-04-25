@@ -2,10 +2,9 @@ import json
 import os
 import re
 from time import sleep, time
-
-import openai
 import tiktoken
 import yaml
+from openai import OpenAI
 
 from shortGPT.config.api_db import ApiKeyManager
 
@@ -67,26 +66,34 @@ def load_local_yaml_prompt(file_path):
 def open_file(filepath):
     with open(filepath, 'r', encoding='utf-8') as infile:
         return infile.read()
-from openai import OpenAI
+
 
 def llm_completion(chat_prompt="", system="", temp=0.7, max_tokens=2000, remove_nl=True, conversation=None):
-    openai_key= ApiKeyManager.get_api_key("OPENAI_API_KEY")
+    openai_key = ApiKeyManager.get_api_key("OPENAI_API_KEY")
     gemini_key = ApiKeyManager.get_api_key("GEMINI_API_KEY")
+    
+    use_ollama = False
+
     if gemini_key:
-        client = OpenAI( 
+        client = OpenAI(
             api_key=gemini_key,
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
         )
-        model="gemini-2.0-flash-lite-preview-02-05"
+        model = "gemini-2.0-flash-lite-preview-02-05"
     elif openai_key:
-        client = OpenAI( api_key=openai_key)
-        model="gpt-4o-mini"
+        client = OpenAI(api_key=openai_key)
+        model = "gpt-4o-mini"
     else:
-        raise Exception("No OpenAI or Gemini API Key found for LLM request")
+        import ollama
+        use_ollama = True
+        model = "mistral"  # or any other local model you have
+        client = ollama
+
     max_retry = 5
     retry = 0
     error = ""
-    for i in range(max_retry):
+
+    for _ in range(max_retry):
         try:
             if conversation:
                 messages = conversation
@@ -95,25 +102,35 @@ def llm_completion(chat_prompt="", system="", temp=0.7, max_tokens=2000, remove_
                     {"role": "system", "content": system},
                     {"role": "user", "content": chat_prompt}
                 ]
-            response = client.chat.completions.create(
-                model=model,
-                messages=messages,
-                max_tokens=max_tokens,
-                temperature=temp,
-                timeout=30
+
+            if use_ollama:
+                response = client.chat(model=model, messages=messages)
+                text = response['message']['content'].strip()
+            else:
+                response = client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    max_tokens=max_tokens,
+                    temperature=temp,
+                    timeout=30
                 )
-            text = response.choices[0].message.content.strip()
+                text = response.choices[0].message.content.strip()
+
             if remove_nl:
-                text = re.sub('\s+', ' ', text)
-            filename = '%s_llm_completion.txt' % time()
-            if not os.path.exists('.logs/gpt_logs'):
-                os.makedirs('.logs/gpt_logs')
-            with open('.logs/gpt_logs/%s' % filename, 'w', encoding='utf-8') as outfile:
-                outfile.write(f"System prompt: ===\n{system}\n===\n"+f"Chat prompt: ===\n{chat_prompt}\n===\n" + f'RESPONSE:\n====\n{text}\n===\n')
+                text = re.sub(r'\s+', ' ', text)
+
+            filename = f'{time()}_llm_completion.txt'
+            log_dir = '.logs/gpt_logs'
+            os.makedirs(log_dir, exist_ok=True)
+            with open(os.path.join(log_dir, filename), 'w', encoding='utf-8') as outfile:
+                outfile.write(f"System prompt: ===\n{system}\n===\nChat prompt: ===\n{chat_prompt}\n===\nRESPONSE:\n====\n{text}\n===\n")
+
             return text
+
         except Exception as oops:
             retry += 1
-            print('Error communicating with OpenAI:', oops)
+            print('Error communicating with LLM:', oops)
             error = str(oops)
             sleep(1)
-    raise Exception(f"Error communicating with LLM Endpoint Completion errored more than error: {error}")
+
+    raise Exception(f"Error communicating with LLM after retries. Last error: {error}")
